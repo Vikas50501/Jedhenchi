@@ -1,0 +1,295 @@
+{%- comment -%}
+  ---------------------------------------------------------------------------
+  seo-structured-data.liquid
+  ---------------------------------------------------------------------------
+  Emits exactly ONE application/ld+json block per page, as a single @graph.
+
+  Rendered once from:
+    - sections/main-product.liquid   (product pages)
+    - sections/main-collection-*.liquid or theme.liquid (collection pages)
+
+  Nodes emitted:
+    product page    -> ProductGroup (multi-variant) or Product (single), plus
+                       BreadcrumbList
+    collection page -> ItemList, plus BreadcrumbList
+
+  The Organization node lives in sections/header.liquid and is referenced here
+  by @id. Do not duplicate it.
+
+  Rules enforced:
+    - absolute https URLs only
+    - empty fields omitted entirely, never null / "" / "N/A"
+    - GTINs validated (length + GS1 check digit) via snippets/seo-gtin.liquid
+    - aggregateRating emitted only when real review data exists
+    - canonical /products/<handle> URLs, never /collections/*/products/*
+  ---------------------------------------------------------------------------
+{%- endcomment -%}
+
+{%- liquid
+  assign base_url = request.origin
+  assign org_id = shop.url | append: '#organization'
+-%}
+
+{%- if request.page_type == 'product' and product != blank -%}
+
+  {%- liquid
+    assign canonical_url = base_url | append: '/products/' | append: product.handle
+    assign product_id = canonical_url | append: '#product'
+
+    assign seo_description = product.description | strip_html | strip_newlines | replace: '  ', ' ' | replace: '  ', ' ' | strip | truncate: 5000, ''
+
+    assign brand_name = product.vendor | default: shop.name
+
+    assign rating = product.metafields.reviews.rating.value
+    assign rating_count = product.metafields.reviews.rating_count.value | default: product.metafields.reviews.rating_count | plus: 0
+
+    assign variant_count = product.variants.size
+
+    assign varies_raw = ''
+    for option_name in product.options
+      assign option_key = option_name | downcase
+      if option_key contains 'color' or option_key contains 'colour'
+        assign varies_raw = varies_raw | append: 'https://schema.org/color|'
+      elsif option_key contains 'size'
+        assign varies_raw = varies_raw | append: 'https://schema.org/size|'
+      elsif option_key contains 'material' or option_key contains 'fabric'
+        assign varies_raw = varies_raw | append: 'https://schema.org/material|'
+      elsif option_key contains 'pattern'
+        assign varies_raw = varies_raw | append: 'https://schema.org/pattern|'
+      endif
+    endfor
+    assign varies_by = varies_raw | split: '|'
+
+    assign breadcrumb_collection = collection | default: product.collections.first
+  -%}
+
+  <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@graph": [
+        {%- if variant_count > 1 -%}
+          {
+            "@type": "ProductGroup",
+            "@id": {{ product_id | json }},
+            "productGroupID": {{ product.id | json }},
+            "name": {{ product.title | json }},
+            "url": {{ canonical_url | json }},
+            {%- if seo_description != blank %}
+              "description": {{ seo_description | json }},
+            {%- endif %}
+            {%- if product.images.size > 0 %}
+              "image": [
+                {%- for image in product.images limit: 10 -%}
+                  {{ image | image_url: width: 2048 | prepend: 'https:' | json }}
+                  {%- unless forloop.last %},{% endunless -%}
+                {%- endfor -%}
+              ],
+            {%- endif %}
+            "brand": { "@type": "Brand", "name": {{ brand_name | json }} },
+            {%- if varies_by.size > 0 %}
+              "variesBy": [
+                {%- for axis in varies_by -%}
+                  {{ axis | json }}{%- unless forloop.last %},{% endunless -%}
+                {%- endfor -%}
+              ],
+            {%- endif %}
+            {%- if rating != blank and rating_count > 0 %}
+              "aggregateRating": {
+                "@type": "AggregateRating",
+                "ratingValue": {{ rating.rating | json }},
+                "bestRating": {{ rating.scale_max | json }},
+                "worstRating": {{ rating.scale_min | json }},
+                "reviewCount": {{ rating_count | json }}
+              },
+            {%- endif %}
+            "hasVariant": [
+              {%- for variant in product.variants -%}
+                {%- liquid
+                  assign variant_url = canonical_url | append: '?variant=' | append: variant.id
+                  if variant.image
+                    assign variant_image = variant.image
+                  else
+                    assign variant_image = product.featured_image
+                  endif
+                -%}
+                {
+                  "@type": "Product",
+                  "@id": {{ variant_url | json }},
+                  "name": {{ product.title | append: ' - ' | append: variant.title | json }},
+                  "url": {{ variant_url | json }},
+                  {%- if seo_description != blank %}
+                    "description": {{ seo_description | json }},
+                  {%- endif %}
+                  {%- if variant_image %}
+                    "image": [ {{ variant_image | image_url: width: 2048 | prepend: 'https:' | json }} ],
+                  {%- endif %}
+                  "brand": { "@type": "Brand", "name": {{ brand_name | json }} },
+                  {%- if variant.sku != blank %}
+                    "sku": {{ variant.sku | json }},
+                  {%- endif %}
+                  {% render 'seo-gtin', barcode: variant.barcode %}
+                  {%- for option_name in product.options -%}
+                    {%- liquid
+                      assign option_key = option_name | downcase
+                      assign option_index = forloop.index0
+                      assign option_value = variant.options[option_index]
+                    -%}
+                    {%- if option_value != blank -%}
+                      {%- if option_key contains 'color' or option_key contains 'colour' -%}
+                        "color": {{ option_value | json }},
+                      {%- elsif option_key contains 'size' -%}
+                        "size": {{ option_value | json }},
+                      {%- elsif option_key contains 'material' or option_key contains 'fabric' -%}
+                        "material": {{ option_value | json }},
+                      {%- elsif option_key contains 'pattern' -%}
+                        "pattern": {{ option_value | json }},
+                      {%- endif -%}
+                    {%- endif -%}
+                  {%- endfor -%}
+                  {%- if variant.weight > 0 %}
+                    "weight": {
+                      "@type": "QuantitativeValue",
+                      "value": {{ variant.weight | json }},
+                      "unitCode": "GRM"
+                    },
+                  {%- endif %}
+                  "offers": {% render 'seo-offer', product: product, variant: variant, canonical_url: canonical_url, org_id: org_id %}
+                }{%- unless forloop.last %},{% endunless -%}
+              {%- endfor -%}
+            ]
+          },
+        {%- else -%}
+          {%- assign variant = product.selected_or_first_available_variant | default: product.variants.first -%}
+          {
+            "@type": "Product",
+            "@id": {{ product_id | json }},
+            "name": {{ product.title | json }},
+            "url": {{ canonical_url | json }},
+            {%- if seo_description != blank %}
+              "description": {{ seo_description | json }},
+            {%- endif %}
+            {%- if product.images.size > 0 %}
+              "image": [
+                {%- for image in product.images limit: 10 -%}
+                  {{ image | image_url: width: 2048 | prepend: 'https:' | json }}
+                  {%- unless forloop.last %},{% endunless -%}
+                {%- endfor -%}
+              ],
+            {%- endif %}
+            "brand": { "@type": "Brand", "name": {{ brand_name | json }} },
+            {%- if variant.sku != blank %}
+              "sku": {{ variant.sku | json }},
+            {%- endif %}
+            {% render 'seo-gtin', barcode: variant.barcode %}
+            {%- if variant.weight > 0 %}
+              "weight": {
+                "@type": "QuantitativeValue",
+                "value": {{ variant.weight | json }},
+                "unitCode": "GRM"
+              },
+            {%- endif %}
+            {%- if rating != blank and rating_count > 0 %}
+              "aggregateRating": {
+                "@type": "AggregateRating",
+                "ratingValue": {{ rating.rating | json }},
+                "bestRating": {{ rating.scale_max | json }},
+                "worstRating": {{ rating.scale_min | json }},
+                "reviewCount": {{ rating_count | json }}
+              },
+            {%- endif %}
+            "offers": {% render 'seo-offer', product: product, variant: variant, canonical_url: canonical_url, org_id: org_id %}
+          },
+        {%- endif -%}
+        {
+          "@type": "BreadcrumbList",
+          "@id": {{ canonical_url | append: '#breadcrumb' | json }},
+          "itemListElement": [
+            {
+              "@type": "ListItem",
+              "position": 1,
+              "name": {{ 'general.breadcrumbs.home' | t | default: 'Home' | json }},
+              "item": {{ base_url | json }}
+            },
+            {%- if breadcrumb_collection != blank and breadcrumb_collection.handle != blank %}
+              {
+                "@type": "ListItem",
+                "position": 2,
+                "name": {{ breadcrumb_collection.title | json }},
+                "item": {{ base_url | append: '/collections/' | append: breadcrumb_collection.handle | json }}
+              },
+              {
+                "@type": "ListItem",
+                "position": 3,
+                "name": {{ product.title | json }},
+                "item": {{ canonical_url | json }}
+              }
+            {%- else %}
+              {
+                "@type": "ListItem",
+                "position": 2,
+                "name": {{ product.title | json }},
+                "item": {{ canonical_url | json }}
+              }
+            {%- endif %}
+          ]
+        }
+      ]
+    }
+  </script>
+
+{%- elsif request.page_type == 'collection' and collection != blank -%}
+
+  {%- liquid
+    assign collection_url = base_url | append: '/collections/' | append: collection.handle
+    comment
+      Outside a paginate tag Liquid exposes at most 50 products, so
+      numberOfItems must reflect what is actually listed, not products_count.
+    endcomment
+    assign listed_products = collection.products
+  -%}
+
+  <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@graph": [
+        {%- if listed_products.size > 0 -%}
+        {
+          "@type": "ItemList",
+          "@id": {{ collection_url | append: '#itemlist' | json }},
+          "name": {{ collection.title | json }},
+          "url": {{ collection_url | json }},
+          "numberOfItems": {{ listed_products.size | json }},
+          "itemListElement": [
+            {%- for item in listed_products -%}
+              {
+                "@type": "ListItem",
+                "position": {{ forloop.index }},
+                "url": {{ base_url | append: '/products/' | append: item.handle | json }}
+              }{%- unless forloop.last %},{% endunless -%}
+            {%- endfor -%}
+          ]
+        },
+        {%- endif -%}
+        {
+          "@type": "BreadcrumbList",
+          "@id": {{ collection_url | append: '#breadcrumb' | json }},
+          "itemListElement": [
+            {
+              "@type": "ListItem",
+              "position": 1,
+              "name": {{ 'general.breadcrumbs.home' | t | default: 'Home' | json }},
+              "item": {{ base_url | json }}
+            },
+            {
+              "@type": "ListItem",
+              "position": 2,
+              "name": {{ collection.title | json }},
+              "item": {{ collection_url | json }}
+            }
+          ]
+        }
+      ]
+    }
+  </script>
+
+{%- endif -%}

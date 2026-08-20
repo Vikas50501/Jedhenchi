@@ -1,0 +1,29 @@
+<quick-view-modal class="{{ wrapper_class }}">
+  <button
+    aria-haspopup="dialog"
+    type="button"
+    class="product__quick_view {{ className }} {{ button_class }} {% if cart_button_type == "primary" %}button--primary{% elsif cart_button_type == "secondary" %}button--secondary{% endif %} {% if tooltip %} product--tooltip{% endif %}"
+    data-product-handle="{{ product_card_product.handle }}"
+    aria-label="{{ 'products.product.choose_product_options' | t: product_name: product_card_product.title | escape }}"
+  >
+    {%- if type == 'quick_view' -%}
+      <span class="action__btn--svg">{% render 'icon-eye' %}</span>
+    {%- elsif type == 'quick_add' -%}
+      {% if settings.p_card_cart_icon_type != 'none' %}
+        <span class="action__btn--svg"> {% render 'icon-cart', icon: settings.p_card_cart_icon_type %}</span>
+      {% endif %}
+      {% if button_label %}
+        <span class="cart__buton--label">{{ 'products.product.select_options' | t }}</span>
+      {% endif %}
+    {%- endif -%}
+    {% if tooltip %}
+      <div class="product--tooltip-label {{ tooltip_position }} {% unless type == 'quick_view' %} {% if tooltip_desktop != true %} desktop--tooltip-disable{% endif %}{% endunless %}">
+        {%- if type == 'quick_view' -%}
+          {{ 'products.product.quick_view' | t }}
+        {%- elsif type == 'quick_add' -%}
+          {{ 'products.product.select_options' | t }}
+        {% endif %}
+      </div>
+    {% endif %}
+  </button>
+</quick-view-modal>

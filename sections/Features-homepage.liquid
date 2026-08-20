@@ -1,0 +1,834 @@
+{% comment %}
+  JEDHENCHI Difference — Theme-matched section
+  Matches jedhenchi.com: white bg, dark cards, pill buttons, clean sans-serif
+{% endcomment %}
+
+<section
+  id="jd-diff-{{ section.id }}"
+  class="jd-diff-section"
+  style="
+    --jd-section-bg:        {{ section.settings.section_bg }};
+    --jd-card-bg:           {{ section.settings.card_bg }};
+    --jd-card-hover-bg:     {{ section.settings.card_hover_bg }};
+    --jd-heading-color:     {{ section.settings.heading_color }};
+    --jd-card-heading:      {{ section.settings.card_heading_color }};
+    --jd-card-body:         {{ section.settings.card_body_color }};
+    --jd-card-tagline:      {{ section.settings.card_tagline_color }};
+    --jd-badge-bg:          {{ section.settings.badge_bg }};
+    --jd-badge-text:        {{ section.settings.badge_text_color }};
+    --jd-btn-bg:            {{ section.settings.btn_bg }};
+    --jd-btn-text:          {{ section.settings.btn_text_color }};
+    --jd-btn-hover-bg:      {{ section.settings.btn_hover_bg }};
+    --jd-icon-color:        {{ section.settings.icon_color }};
+    --jd-card-radius:       {{ section.settings.card_radius }}px;
+    --jd-padding-top:       {{ section.settings.padding_top }}px;
+    --jd-padding-bottom:    {{ section.settings.padding_bottom }}px;
+    --jd-gap:               {{ section.settings.card_gap }}px;
+  "
+>
+  <div class="jd-diff-wrap">
+
+    {%- comment -%} ── Section Header ── {%- endcomment -%}
+    <div class="jd-diff-header jd-align-{{ section.settings.header_align }}">
+      {%- if section.settings.eyebrow != blank -%}
+        <p class="jd-diff-eyebrow">{{ section.settings.eyebrow }}</p>
+      {%- endif -%}
+      {%- if section.settings.title != blank -%}
+        <{{ section.settings.title_tag }} class="jd-diff-title">
+          {{ section.settings.title }}
+        </{{ section.settings.title_tag }}>
+      {%- endif -%}
+      {%- if section.settings.subtitle != blank -%}
+        <p class="jd-diff-subtitle">{{ section.settings.subtitle }}</p>
+      {%- endif -%}
+    </div>
+
+    {%- comment -%} ── Cards Grid ── {%- endcomment -%}
+    <div class="jd-diff-grid jd-cols-{{ section.settings.columns }}">
+      {%- for block in section.blocks -%}
+        {%- if block.type == 'card' -%}
+          <div
+            class="jd-diff-card"
+            {{ block.shopify_attributes }}
+            style="animation-delay:{{ forloop.index0 | times: 130 }}ms;"
+          >
+
+            {%- if block.settings.badge != blank -%}
+              <span class="jd-diff-badge">{{ block.settings.badge }}</span>
+            {%- endif -%}
+
+            {%- if block.settings.show_icon -%}
+              <div class="jd-diff-icon">
+                {%- case block.settings.icon -%}
+                  {%- when 'plane' -%}
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M22 2L11 13M22 2L15 22l-4-9-9-4 19-7z"/></svg>
+                  {%- when 'shield' -%}
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+                  {%- when 'refresh' -%}
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 .49-4.97"/></svg>
+                  {%- when 'check' -%}
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+                  {%- when 'clock' -%}
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                  {%- when 'star' -%}
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+                  {%- when 'tag' -%}
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/></svg>
+                  {%- when 'heart' -%}
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+                  {%- else -%}
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                {%- endcase -%}
+              </div>
+            {%- endif -%}
+
+            {%- if block.settings.stat_number != blank -%}
+              <div class="jd-diff-stat">
+                <span class="jd-diff-stat-num">{{ block.settings.stat_number }}</span>
+                {%- if block.settings.stat_unit != blank -%}
+                  <span class="jd-diff-stat-unit">{{ block.settings.stat_unit }}</span>
+                {%- endif -%}
+              </div>
+            {%- endif -%}
+
+            <div class="jd-diff-text">
+              {%- if block.settings.title != blank -%}
+                <h3 class="jd-diff-card-title">{{ block.settings.title }}</h3>
+              {%- endif -%}
+              {%- if block.settings.tagline != blank -%}
+                <p class="jd-diff-card-tagline">{{ block.settings.tagline }}</p>
+              {%- endif -%}
+              {%- if block.settings.description != blank -%}
+                <div class="jd-diff-card-desc">{{ block.settings.description }}</div>
+              {%- endif -%}
+            </div>
+
+            {%- if block.settings.btn_label != blank -%}
+              <a
+                href="{{ block.settings.btn_url | default: '#' }}"
+                class="jd-diff-btn"
+                {% if block.settings.btn_new_tab %}target="_blank" rel="noopener"{% endif %}
+              >
+                {{ block.settings.btn_label }}
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+              </a>
+            {%- endif -%}
+
+          </div>
+        {%- endif -%}
+      {%- endfor -%}
+    </div>
+
+    {%- if section.settings.show_cta and section.settings.cta_label != blank -%}
+      <div class="jd-diff-cta jd-align-{{ section.settings.header_align }}">
+        {%- if section.settings.cta_note != blank -%}
+          <p class="jd-diff-cta-note">{{ section.settings.cta_note }}</p>
+        {%- endif -%}
+        <a href="{{ section.settings.cta_url | default: '#' }}" class="jd-diff-btn jd-diff-btn--lg">
+          {{ section.settings.cta_label }}
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+        </a>
+      </div>
+    {%- endif -%}
+
+  </div>
+</section>
+
+<style>
+/* ==========================================================
+   JEDHENCHI Difference — Matched to jedhenchi.com theme
+   White page · Dark charcoal cards · Pill buttons
+   ========================================================== */
+
+#jd-diff-{{ section.id }} {
+  background-color: var(--jd-section-bg);
+  padding-top: var(--jd-padding-top);
+  padding-bottom: var(--jd-padding-bottom);
+}
+
+.jd-diff-wrap {
+  max-width: {{ section.settings.max_width }}px;
+  margin: 0 auto;
+  padding: 0 {{ section.settings.side_padding }}px;
+}
+
+/* ── Header ─────────────────────────────── */
+.jd-diff-header { margin-bottom: {{ section.settings.header_gap }}px; }
+.jd-align-center { text-align: center; }
+.jd-align-left   { text-align: left; }
+.jd-align-right  { text-align: right; }
+
+.jd-diff-eyebrow {
+  display: inline-block;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: #888888;
+  margin: 0 0 10px;
+}
+
+.jd-diff-title {
+  font-size: clamp({{ section.settings.title_size_min }}px, 3.5vw, {{ section.settings.title_size_max }}px);
+  font-weight: {{ section.settings.title_weight }};
+  color: var(--jd-heading-color);
+  margin: 0 0 14px;
+  line-height: 1.15;
+  letter-spacing: -0.025em;
+}
+
+.jd-diff-subtitle {
+  font-size: {{ section.settings.subtitle_size }}px;
+  color: #666666;
+  max-width: 540px;
+  margin: 0 {% if section.settings.header_align == 'center' %}auto{% else %}0{% endif %};
+  line-height: 1.6;
+}
+
+/* ── Grid ────────────────────────────────── */
+.jd-diff-grid {
+  display: grid;
+  gap: var(--jd-gap);
+}
+.jd-cols-1 { grid-template-columns: 1fr; }
+.jd-cols-2 { grid-template-columns: repeat(2, 1fr); }
+.jd-cols-3 { grid-template-columns: repeat(3, 1fr); }
+.jd-cols-4 { grid-template-columns: repeat(4, 1fr); }
+
+@media (max-width: 1024px) {
+  .jd-cols-3, .jd-cols-4 { grid-template-columns: repeat(2, 1fr); }
+}
+@media (max-width: 640px) {
+  .jd-cols-2, .jd-cols-3, .jd-cols-4 { grid-template-columns: 1fr; }
+  .jd-diff-wrap { padding: 0 20px; }
+}
+
+/* ── Card ─ matches dark category cards on jedhenchi.com ── */
+.jd-diff-card {
+  position: relative;
+  background-color: var(--jd-card-bg);
+  border-radius: var(--jd-card-radius);
+  padding: {{ section.settings.card_padding }}px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  overflow: hidden;
+  transition: background-color 0.25s ease, transform 0.25s cubic-bezier(.22,.68,0,1.2);
+  opacity: 0;
+  transform: translateY(18px);
+  animation: jdCardIn 0.5s ease forwards;
+}
+
+@keyframes jdCardIn { to { opacity: 1; transform: translateY(0); } }
+
+.jd-diff-card:hover {
+  background-color: var(--jd-card-hover-bg);
+  transform: translateY(-4px);
+}
+
+/* subtle shimmer line at top edge */
+.jd-diff-card::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.10), transparent);
+  pointer-events: none;
+}
+
+/* ── Badge — white pill, matches site's "Best Seller" / "New Arrival" */
+.jd-diff-badge {
+  display: inline-block;
+  align-self: flex-start;
+  background: var(--jd-badge-bg);
+  color: var(--jd-badge-text);
+  font-size: {{ section.settings.badge_font_size }}px;
+  font-weight: 600;
+  padding: 5px 14px;
+  border-radius: 100px;
+  letter-spacing: 0.01em;
+  line-height: 1.5;
+}
+
+/* ── Icon ─────────────────────────────────── */
+.jd-diff-icon {
+  width: {{ section.settings.icon_size }}px;
+  height: {{ section.settings.icon_size }}px;
+  color: var(--jd-icon-color);
+  flex-shrink: 0;
+  opacity: 0.85;
+}
+.jd-diff-icon svg { width: 100%; height: 100%; }
+
+/* ── Big stat number ─────────────────────── */
+.jd-diff-stat {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+  line-height: 1;
+}
+.jd-diff-stat-num {
+  font-size: {{ section.settings.stat_font_size }}px;
+  font-weight: 800;
+  color: #ffffff;
+  letter-spacing: -0.04em;
+  line-height: 1;
+}
+.jd-diff-stat-unit {
+  font-size: 13px;
+  font-weight: 500;
+  color: rgba(255,255,255,0.45);
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+}
+
+/* ── Text ────────────────────────────────── */
+.jd-diff-text {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  flex: 1;
+}
+
+.jd-diff-card-title {
+  font-size: {{ section.settings.card_title_size }}px;
+  font-weight: {{ section.settings.card_title_weight }};
+  color: var(--jd-card-heading);
+  margin: 0;
+  line-height: 1.25;
+  letter-spacing: -0.015em;
+}
+
+.jd-diff-card-tagline {
+  font-size: {{ section.settings.card_tagline_size }}px;
+  color: var(--jd-card-tagline);
+  font-style: italic;
+  margin: 0;
+  line-height: 1.45;
+}
+
+.jd-diff-card-desc {
+  font-size: {{ section.settings.card_body_size }}px;
+  color: var(--jd-card-body);
+  line-height: 1.65;
+  margin: 0;
+}
+.jd-diff-card-desc p { margin: 0; }
+
+/* ── Button — matches site's pill "Shop Now >" style ──── */
+.jd-diff-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  align-self: flex-start;
+  background: var(--jd-btn-bg);
+  color: var(--jd-btn-text);
+  font-size: {{ section.settings.btn_font_size }}px;
+  font-weight: 600;
+  padding: 11px 22px;
+  border-radius: 100px;
+  text-decoration: none;
+  letter-spacing: 0.01em;
+  transition: background-color 0.2s ease, transform 0.2s ease, gap 0.2s ease;
+  margin-top: auto;
+}
+.jd-diff-btn:hover {
+  background-color: var(--jd-btn-hover-bg);
+  gap: 12px;
+  transform: translateY(-1px);
+}
+.jd-diff-btn--lg {
+  font-size: 15px;
+  padding: 14px 32px;
+}
+
+/* ── Section CTA ─────────────────────────── */
+.jd-diff-cta {
+  margin-top: {{ section.settings.cta_gap }}px;
+  display: flex;
+  flex-direction: column;
+  align-items: {% if section.settings.header_align == 'center' %}center{% elsif section.settings.header_align == 'right' %}flex-end{% else %}flex-start{% endif %};
+  gap: 14px;
+}
+.jd-diff-cta-note {
+  font-size: 14px;
+  color: #888888;
+  margin: 0;
+}
+</style>
+
+{% schema %}
+{
+  "name": "JEDHENCHI Difference",
+  "tag": "section",
+  "class": "section",
+  "disabled_on": { "groups": ["header", "footer"] },
+  "settings": [
+    {
+      "type": "header",
+      "content": "📐 Layout"
+    },
+    {
+      "type": "select",
+      "id": "columns",
+      "label": "Columns (Desktop)",
+      "options": [
+        { "value": "1", "label": "1 Column" },
+        { "value": "2", "label": "2 Columns" },
+        { "value": "3", "label": "3 Columns" },
+        { "value": "4", "label": "4 Columns" }
+      ],
+      "default": "2"
+    },
+    {
+      "type": "range",
+      "id": "max_width",
+      "min": 800, "max": 1600, "step": 40, "unit": "px",
+      "label": "Container Max Width",
+      "default": 1200
+    },
+    {
+      "type": "range",
+      "id": "side_padding",
+      "min": 0, "max": 80, "step": 4, "unit": "px",
+      "label": "Side Padding",
+      "default": 40
+    },
+    {
+      "type": "range",
+      "id": "card_gap",
+      "min": 8, "max": 48, "step": 4, "unit": "px",
+      "label": "Gap Between Cards",
+      "default": 20
+    },
+    {
+      "type": "range",
+      "id": "card_padding",
+      "min": 16, "max": 56, "step": 4, "unit": "px",
+      "label": "Card Inner Padding",
+      "default": 32
+    },
+    {
+      "type": "range",
+      "id": "card_radius",
+      "min": 0, "max": 32, "step": 2, "unit": "px",
+      "label": "Card Border Radius",
+      "default": 16
+    },
+    {
+      "type": "range",
+      "id": "padding_top",
+      "min": 0, "max": 160, "step": 8, "unit": "px",
+      "label": "Section Padding Top",
+      "default": 72
+    },
+    {
+      "type": "range",
+      "id": "padding_bottom",
+      "min": 0, "max": 160, "step": 8, "unit": "px",
+      "label": "Section Padding Bottom",
+      "default": 72
+    },
+    {
+      "type": "header",
+      "content": "🎨 Colors"
+    },
+    {
+      "type": "color",
+      "id": "section_bg",
+      "label": "Section Background",
+      "default": "#ffffff"
+    },
+    {
+      "type": "color",
+      "id": "card_bg",
+      "label": "Card Background",
+      "default": "#1e1e1e"
+    },
+    {
+      "type": "color",
+      "id": "card_hover_bg",
+      "label": "Card Background (Hover)",
+      "default": "#2a2a2a"
+    },
+    {
+      "type": "color",
+      "id": "heading_color",
+      "label": "Section Heading Color",
+      "default": "#111111"
+    },
+    {
+      "type": "color",
+      "id": "card_heading_color",
+      "label": "Card Title Color",
+      "default": "#ffffff"
+    },
+    {
+      "type": "color",
+      "id": "card_tagline_color",
+      "label": "Card Tagline Color",
+      "default": "#aaaaaa"
+    },
+    {
+      "type": "color",
+      "id": "card_body_color",
+      "label": "Card Body Text Color",
+      "default": "#bbbbbb"
+    },
+    {
+      "type": "color",
+      "id": "badge_bg",
+      "label": "Badge Background",
+      "default": "#ffffff"
+    },
+    {
+      "type": "color",
+      "id": "badge_text_color",
+      "label": "Badge Text Color",
+      "default": "#111111"
+    },
+    {
+      "type": "color",
+      "id": "btn_bg",
+      "label": "Button Background",
+      "default": "#ffffff"
+    },
+    {
+      "type": "color",
+      "id": "btn_text_color",
+      "label": "Button Text Color",
+      "default": "#111111"
+    },
+    {
+      "type": "color",
+      "id": "btn_hover_bg",
+      "label": "Button Background (Hover)",
+      "default": "#e8e8e8"
+    },
+    {
+      "type": "color",
+      "id": "icon_color",
+      "label": "Icon Color",
+      "default": "#ffffff"
+    },
+    {
+      "type": "header",
+      "content": "✏️ Section Header"
+    },
+    {
+      "type": "select",
+      "id": "header_align",
+      "label": "Header Alignment",
+      "options": [
+        { "value": "left",   "label": "Left" },
+        { "value": "center", "label": "Center" },
+        { "value": "right",  "label": "Right" }
+      ],
+      "default": "center"
+    },
+    {
+      "type": "text",
+      "id": "eyebrow",
+      "label": "Eyebrow Text",
+      "default": "Our Promise"
+    },
+    {
+      "type": "text",
+      "id": "title",
+      "label": "Section Title",
+      "default": "The JEDHENCHI Difference"
+    },
+    {
+      "type": "select",
+      "id": "title_tag",
+      "label": "Title HTML Tag",
+      "options": [
+        { "value": "h1", "label": "H1" },
+        { "value": "h2", "label": "H2" },
+        { "value": "h3", "label": "H3" }
+      ],
+      "default": "h2"
+    },
+    {
+      "type": "range",
+      "id": "title_size_min",
+      "min": 20, "max": 40, "step": 2, "unit": "px",
+      "label": "Title Size (Mobile)",
+      "default": 28
+    },
+    {
+      "type": "range",
+      "id": "title_size_max",
+      "min": 32, "max": 80, "step": 2, "unit": "px",
+      "label": "Title Size (Desktop)",
+      "default": 44
+    },
+    {
+      "type": "select",
+      "id": "title_weight",
+      "label": "Title Font Weight",
+      "options": [
+        { "value": "600", "label": "SemiBold" },
+        { "value": "700", "label": "Bold" },
+        { "value": "800", "label": "ExtraBold" },
+        { "value": "900", "label": "Black" }
+      ],
+      "default": "800"
+    },
+    {
+      "type": "textarea",
+      "id": "subtitle",
+      "label": "Section Subtitle",
+      "default": "Every JEDHENCHI product is backed by policies that put you first."
+    },
+    {
+      "type": "range",
+      "id": "subtitle_size",
+      "min": 12, "max": 20, "step": 1, "unit": "px",
+      "label": "Subtitle Font Size",
+      "default": 16
+    },
+    {
+      "type": "range",
+      "id": "header_gap",
+      "min": 16, "max": 80, "step": 4, "unit": "px",
+      "label": "Space Below Header",
+      "default": 40
+    },
+    {
+      "type": "header",
+      "content": "🔣 Icon & Stat"
+    },
+    {
+      "type": "range",
+      "id": "icon_size",
+      "min": 24, "max": 64, "step": 4, "unit": "px",
+      "label": "Icon Size",
+      "default": 36
+    },
+    {
+      "type": "range",
+      "id": "stat_font_size",
+      "min": 40, "max": 120, "step": 4, "unit": "px",
+      "label": "Stat Number Font Size",
+      "default": 72
+    },
+    {
+      "type": "header",
+      "content": "✍️ Card Typography"
+    },
+    {
+      "type": "range",
+      "id": "card_title_size",
+      "min": 14, "max": 30, "step": 1, "unit": "px",
+      "label": "Card Title Font Size",
+      "default": 20
+    },
+    {
+      "type": "select",
+      "id": "card_title_weight",
+      "label": "Card Title Font Weight",
+      "options": [
+        { "value": "600", "label": "SemiBold" },
+        { "value": "700", "label": "Bold" },
+        { "value": "800", "label": "ExtraBold" }
+      ],
+      "default": "700"
+    },
+    {
+      "type": "range",
+      "id": "card_tagline_size",
+      "min": 12, "max": 18, "step": 1, "unit": "px",
+      "label": "Card Tagline Font Size",
+      "default": 14
+    },
+    {
+      "type": "range",
+      "id": "card_body_size",
+      "min": 12, "max": 18, "step": 1, "unit": "px",
+      "label": "Card Body Font Size",
+      "default": 14
+    },
+    {
+      "type": "range",
+      "id": "badge_font_size",
+      "min": 9, "max": 14, "step": 1, "unit": "px",
+      "label": "Badge Font Size",
+      "default": 11
+    },
+    {
+      "type": "range",
+      "id": "btn_font_size",
+      "min": 12, "max": 18, "step": 1, "unit": "px",
+      "label": "Button Font Size",
+      "default": 14
+    },
+    {
+      "type": "header",
+      "content": "🔗 Section CTA"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_cta",
+      "label": "Show Bottom CTA Button",
+      "default": false
+    },
+    {
+      "type": "text",
+      "id": "cta_note",
+      "label": "CTA Note Text (optional)"
+    },
+    {
+      "type": "text",
+      "id": "cta_label",
+      "label": "CTA Button Label",
+      "default": "Shop Collection"
+    },
+    {
+      "type": "url",
+      "id": "cta_url",
+      "label": "CTA Button URL"
+    },
+    {
+      "type": "range",
+      "id": "cta_gap",
+      "min": 16, "max": 80, "step": 4, "unit": "px",
+      "label": "Space Above CTA",
+      "default": 40
+    }
+  ],
+  "blocks": [
+    {
+      "type": "card",
+      "name": "Feature Card",
+      "settings": [
+        {
+          "type": "header",
+          "content": "🏷️ Badge"
+        },
+        {
+          "type": "text",
+          "id": "badge",
+          "label": "Badge Label (blank = hidden)",
+          "default": "Hi"
+        },
+        {
+          "type": "header",
+          "content": "🔣 Icon"
+        },
+        {
+          "type": "checkbox",
+          "id": "show_icon",
+          "label": "Show Icon",
+          "default": true
+        },
+        {
+          "type": "select",
+          "id": "icon",
+          "label": "Icon",
+          "options": [
+            { "value": "plane",   "label": "✈️ Plane / Travel" },
+            { "value": "shield",  "label": "🛡️ Shield" },
+            { "value": "refresh", "label": "🔄 Return / Refresh" },
+            { "value": "check",   "label": "✅ Checkmark" },
+            { "value": "clock",   "label": "🕐 Clock" },
+            { "value": "star",    "label": "⭐ Star" },
+            { "value": "tag",     "label": "🏷️ Tag" },
+            { "value": "heart",   "label": "❤️ Heart" }
+          ],
+          "default": "plane"
+        },
+        {
+          "type": "header",
+          "content": "📊 Big Stat"
+        },
+        {
+          "type": "text",
+          "id": "stat_number",
+          "label": "Stat Number (e.g. 7, 60 — blank = hidden)"
+        },
+        {
+          "type": "text",
+          "id": "stat_unit",
+          "label": "Stat Unit (e.g. Days, %)",
+          "default": "Days"
+        },
+        {
+          "type": "header",
+          "content": "✏️ Content"
+        },
+        {
+          "type": "text",
+          "id": "title",
+          "label": "Card Title",
+          "default": "7-Day Real-World Travel Trial™️"
+        },
+        {
+          "type": "text",
+          "id": "tagline",
+          "label": "Tagline (italic, muted)",
+          "default": "We believe luggage proves itself only in motion."
+        },
+        {
+          "type": "richtext",
+          "id": "description",
+          "label": "Description",
+          "default": "<p>Take your JEDHENCHI bag into the real world — flights, road trips, daily commutes — and experience its performance where it matters. If it doesn't meet your expectations, return it. No questions asked.</p>"
+        },
+        {
+          "type": "header",
+          "content": "🔗 Button"
+        },
+        {
+          "type": "text",
+          "id": "btn_label",
+          "label": "Button Label (blank = hidden)",
+          "default": "Shop Now"
+        },
+        {
+          "type": "url",
+          "id": "btn_url",
+          "label": "Button URL"
+        },
+        {
+          "type": "checkbox",
+          "id": "btn_new_tab",
+          "label": "Open in New Tab",
+          "default": false
+        }
+      ]
+    }
+  ],
+  "presets": [
+    {
+      "name": "JEDHENCHI Difference",
+      "blocks": [
+        {
+          "type": "card",
+          "settings": {
+            "show_icon": true,
+            "icon": "plane",
+            "stat_number": "7",
+            "stat_unit": "Days",
+            "title": "7-Day Real-World Travel Trial™️",
+            "tagline": "We believe luggage proves itself only in motion.",
+            "description": "<p>Take your JEDHENCHI bag into the real world — flights, road trips, daily commutes — and experience its performance where it matters. If it doesn't meet your expectations, return it. No questions asked.</p>"
+          }
+        },
+        {
+          "type": "card",
+          "settings": {
+            "show_icon": true,
+            "icon": "refresh",
+            "stat_number": "60",
+            "stat_unit": "Days",
+            "title": "60-Day Risk-Free Returns",
+            "tagline": "Because trust shouldn't expire early.",
+            "description": "<p>Most brands offer 14–30 days. We offer 60. Return eligible products within 60 days for a full refund — even after light, real-world use.</p>"
+          }
+        }
+      ]
+    }
+  ]
+}
+{% endschema %}

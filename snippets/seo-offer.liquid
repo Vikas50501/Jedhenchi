@@ -1,0 +1,48 @@
+{%- comment -%}
+  Emits a single schema.org Offer object (no trailing comma).
+
+  Usage:
+    {% render 'seo-offer',
+        product: product,
+        variant: variant,
+        canonical_url: canonical_url,
+        org_id: org_id %}
+
+  Availability mapping:
+    available + tracked + qty <= 0  -> BackOrder   (continue-selling / pre-order)
+    available                        -> InStock
+    otherwise                        -> OutOfStock
+{%- endcomment -%}
+{%- liquid
+  assign offer_url = canonical_url | append: '?variant=' | append: variant.id
+
+  assign availability = 'OutOfStock'
+  if variant.available
+    if variant.inventory_management != blank and variant.inventory_quantity <= 0
+      assign availability = 'BackOrder'
+    else
+      assign availability = 'InStock'
+    endif
+  endif
+
+  assign offer_price = variant.price | money_without_currency | replace: ',', '' | strip
+
+  assign condition = product.metafields.seo.item_condition | default: 'NewCondition'
+  assign valid_until = product.metafields.seo.price_valid_until.value | default: product.metafields.seo.price_valid_until
+-%}
+{
+  "@type": "Offer",
+  "url": {{ offer_url | json }},
+  "price": {{ offer_price | json }},
+  "priceCurrency": {{ cart.currency.iso_code | json }},
+  "availability": "https://schema.org/{{ availability }}",
+  "itemCondition": "https://schema.org/{{ condition }}",
+  {%- if valid_until != blank %}
+    "priceValidUntil": {{ valid_until | date: '%Y-%m-%d' | json }},
+  {%- endif %}
+  {%- if variant.sku != blank %}
+    "sku": {{ variant.sku | json }},
+  {%- endif %}
+  {% render 'seo-gtin', barcode: variant.barcode %}
+  "seller": { "@id": {{ org_id | json }} }
+}

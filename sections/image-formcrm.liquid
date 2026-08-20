@@ -1,0 +1,230 @@
+{% schema %}
+{
+  "name": "Image + Premium Contact",
+  "settings": [
+    {
+      "type": "image_picker",
+      "id": "side_image",
+      "label": "Left Image"
+    },
+    {
+      "type": "text",
+      "id": "heading",
+      "default": "Get in Touch",
+      "label": "Heading"
+    },
+    {
+      "type": "text",
+      "id": "subheading",
+      "default": "We’d love to hear from you",
+      "label": "Subheading"
+    }
+  ],
+  "presets": [
+    {
+      "name": "Premium Contact Section"
+    }
+  ]
+}
+{% endschema %}
+
+<section class="premium-contact">
+  <div class="page-width">
+
+    <div class="contact-grid">
+
+      <!-- IMAGE -->
+      <div class="contact-image reveal">
+        {% if section.settings.side_image != blank %}
+          <img 
+            src="{{ section.settings.side_image | image_url: width: 900 }}" 
+            alt="Contact Image"
+            loading="lazy">
+        {% endif %}
+      </div>
+
+      <!-- FORM -->
+      <div class="contact-form-box reveal">
+        <p class="eyebrow">Partners</p>
+        <h2>{{ section.settings.heading }}</h2>
+        <p class="subtext">{{ section.settings.subheading }}</p>
+
+        {% form 'contact' %}
+  
+  <div class="field-group">
+    <input type="text" name="contact[name]" placeholder="Your Name" required>
+    <input type="email" name="contact[email]" placeholder="Your Email" required>
+  </div>
+
+  <input type="tel" name="contact[phone]" placeholder="Phone Number">
+
+  <textarea name="contact[body]" placeholder="Your Message" rows="4"></textarea>
+
+  <button type="submit" class="btn-primary">
+    Submit Message
+  </button>
+
+  <!-- SUCCESS MESSAGE -->
+  {% if form.posted_successfully? %}
+    <div id="successPopup" class="form-popup success">
+      Message sent successfully 🎉
+    </div>
+  {% endif %}
+
+  <!-- ERROR MESSAGE -->
+  {% if form.errors %}
+    <div id="errorPopup" class="form-popup error">
+      Please fill all required fields correctly ❌
+    </div>
+  {% endif %}
+
+{% endform %}
+      </div>
+
+    </div>
+
+  </div>
+</section>
+
+<style>
+.premium-contact {
+  padding: 80px 20px;
+  background: #f9f9f9;
+}
+
+/* GRID */
+.contact-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 60px;
+  align-items: center;
+}
+
+/* IMAGE */
+.contact-image img {
+  width: 100%;
+  border-radius: 20px;
+  display: block;
+}
+
+/* FORM BOX */
+.contact-form-box {
+  background: #fff;
+  padding: 40px;
+  border-radius: 20px;
+  box-shadow: 0 10px 40px rgba(0,0,0,0.05);
+}
+
+/* TEXT */
+.contact-form-box h2 {
+  font-size: 32px;
+  margin-bottom: 10px;
+}
+
+.eyebrow {
+  font-size: 12px;
+  letter-spacing: 2px;
+  color: #888;
+  margin-bottom: 10px;
+}
+
+.subtext {
+  color: #666;
+  margin-bottom: 25px;
+}
+
+/* INPUTS */
+.field-group {
+  display: flex;
+  gap: 10px;
+}
+
+.contact-form-box input,
+.contact-form-box textarea {
+  width: 100%;
+  padding: 14px;
+  margin-bottom: 12px;
+  border: 1px solid #e5e5e5;
+  border-radius: 10px;
+  font-size: 14px;
+  transition: all 0.2s ease;
+}
+
+.contact-form-box input:focus,
+.contact-form-box textarea:focus {
+  border-color: #000;
+  outline: none;
+}
+
+/* BUTTON */
+.btn-primary {
+  width: 100%;
+  padding: 14px;
+  background: #000;
+  color: #fff;
+  border-radius: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: 0.3s;
+}
+
+.btn-primary:hover {
+  opacity: 0.85;
+}
+.form-popup {
+  position: fixed;
+  bottom: 30px;
+  right: 30px;
+  padding: 16px 22px;
+  border-radius: 12px;
+  color: #fff;
+  font-size: 14px;
+  z-index: 9999;
+  animation: slideUp 0.4s ease;
+}
+
+.form-popup.success {
+  background: #16a34a;
+}
+
+.form-popup.error {
+  background: #dc2626;
+}
+
+@keyframes slideUp {
+  from {
+    transform: translateY(40px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+/* MOBILE */
+@media (max-width: 768px) {
+  .contact-grid {
+    grid-template-columns: 1fr;
+    gap: 30px;
+  }
+
+  .contact-form-box {
+    padding: 25px;
+  }
+
+  .field-group {
+    flex-direction: column;
+  }
+}
+</style>
+<script>
+document.addEventListener("DOMContentLoaded", function() {
+  const popup = document.querySelector(".form-popup");
+  if (popup) {
+    setTimeout(() => {
+      popup.style.display = "none";
+    }, 4000);
+  }
+});
+</script>

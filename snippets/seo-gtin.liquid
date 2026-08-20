@@ -1,0 +1,53 @@
+{%- comment -%}
+  Validates a barcode as a GTIN and emits the correct gtin8/12/13/14 property.
+  Emits nothing at all when the barcode is missing, non-numeric, the wrong
+  length, or fails the GS1 mod-10 check digit. Never emits an invalid GTIN.
+
+  Usage: {% render 'seo-gtin', barcode: variant.barcode %}
+  Output (trailing comma included): "gtin13": "0012345678905",
+{%- endcomment -%}
+{%- liquid
+  assign bc = barcode | default: '' | strip
+  assign bc_size = bc | size
+  assign gtin_ok = false
+
+  if bc_size == 8 or bc_size == 12 or bc_size == 13 or bc_size == 14
+    assign chars = bc | split: ''
+    assign only_digits = true
+    for c in chars
+      unless '0123456789' contains c
+        assign only_digits = false
+      endunless
+    endfor
+
+    if only_digits
+      assign last_index = bc_size | minus: 1
+      assign check_digit = chars[last_index] | plus: 0
+      assign total = 0
+      for c in chars
+        if forloop.index0 < last_index
+          assign dist = last_index | minus: forloop.index0
+          assign weight_slot = dist | modulo: 2
+          if weight_slot == 1
+            assign total = c | plus: 0 | times: 3 | plus: total
+          else
+            assign total = c | plus: 0 | plus: total
+          endif
+        endif
+      endfor
+      assign remainder = total | modulo: 10
+      assign expected = 10 | minus: remainder | modulo: 10
+      if expected == check_digit
+        assign gtin_ok = true
+      endif
+    endif
+  endif
+-%}
+{%- if gtin_ok -%}
+  {%- case bc_size -%}
+    {%- when 8 -%}"gtin8": {{ bc | json }},
+    {%- when 12 -%}"gtin12": {{ bc | json }},
+    {%- when 13 -%}"gtin13": {{ bc | json }},
+    {%- when 14 -%}"gtin14": {{ bc | json }},
+  {%- endcase -%}
+{%- endif -%}

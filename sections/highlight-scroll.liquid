@@ -1,0 +1,513 @@
+{% comment %}
+  Section: Scrolling Features Bar
+  File: sections/scrolling-features-bar.liquid
+  Description: Animated infinite scrolling ticker for product page feature highlights.
+  Full schema customization included.
+{% endcomment %}
+
+{%- assign ticker_id = 'ticker-' | append: section.id -%}
+
+<style>
+  #{{ ticker_id }} {
+    --ticker-bg: {{ section.settings.background_color }};
+    --ticker-text: {{ section.settings.text_color }};
+    --ticker-accent: {{ section.settings.accent_color }};
+    --ticker-divider: {{ section.settings.divider_color }};
+    --ticker-font-size: {{ section.settings.font_size }}px;
+    --ticker-font-weight: {{ section.settings.font_weight }};
+    --ticker-letter-spacing: {{ section.settings.letter_spacing }}em;
+    --ticker-padding-y: {{ section.settings.padding_vertical }}px;
+    --ticker-icon-size: {{ section.settings.icon_size }}px;
+    --ticker-gap: {{ section.settings.item_gap }}px;
+    --ticker-speed: {{ section.settings.scroll_speed }}s;
+    --ticker-border-top-width: {{ section.settings.border_top_width }}px;
+    --ticker-border-bottom-width: {{ section.settings.border_bottom_width }}px;
+    --ticker-border-color: {{ section.settings.border_color }};
+    --ticker-text-transform: {{ section.settings.text_transform }};
+    --ticker-border-radius: {{ section.settings.section_border_radius }}px;
+  }
+
+  #{{ ticker_id }} {
+    background-color: var(--ticker-bg);
+    overflow: hidden;
+    position: relative;
+    border-top: var(--ticker-border-top-width) solid var(--ticker-border-color);
+    border-bottom: var(--ticker-border-bottom-width) solid var(--ticker-border-color);
+    border-radius: var(--ticker-border-radius);
+    {% if section.settings.section_margin_top != 0 %}margin-top: {{ section.settings.section_margin_top }}px;{% endif %}
+    {% if section.settings.section_margin_bottom != 0 %}margin-bottom: {{ section.settings.section_margin_bottom }}px;{% endif %}
+  }
+
+  {% if section.settings.show_gradient_fade %}
+  #{{ ticker_id }}::before,
+  #{{ ticker_id }}::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    width: {{ section.settings.gradient_fade_width }}px;
+    z-index: 2;
+    pointer-events: none;
+  }
+  #{{ ticker_id }}::before {
+    left: 0;
+    background: linear-gradient(to right, var(--ticker-bg), transparent);
+  }
+  #{{ ticker_id }}::after {
+    right: 0;
+    background: linear-gradient(to left, var(--ticker-bg), transparent);
+  }
+  {% endif %}
+
+  #{{ ticker_id }} .ticker__track {
+    display: flex;
+    align-items: center;
+    width: max-content;
+    padding: var(--ticker-padding-y) 0;
+    animation: ticker-scroll var(--ticker-speed) linear infinite;
+    {% if section.settings.scroll_direction == 'right' %}
+      animation-direction: reverse;
+    {% endif %}
+  }
+
+  {% if section.settings.pause_on_hover %}
+  #{{ ticker_id }}:hover .ticker__track {
+    animation-play-state: paused;
+  }
+  {% endif %}
+
+  #{{ ticker_id }} .ticker__item {
+    display: inline-flex;
+    align-items: center;
+    gap: calc(var(--ticker-gap) * 0.5);
+    padding: 0 var(--ticker-gap);
+    white-space: nowrap;
+    color: var(--ticker-text);
+    font-size: var(--ticker-font-size);
+    font-weight: var(--ticker-font-weight);
+    letter-spacing: var(--ticker-letter-spacing);
+    text-transform: var(--ticker-text-transform);
+    {% if section.settings.font_family != 'inherit' %}
+      font-family: {{ section.settings.font_family }};
+    {% endif %}
+  }
+
+  #{{ ticker_id }} .ticker__icon {
+    flex-shrink: 0;
+    width: var(--ticker-icon-size);
+    height: var(--ticker-icon-size);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--ticker-accent);
+    {% if section.settings.icon_position == 'after' %}
+      order: 1;
+    {% endif %}
+  }
+
+  #{{ ticker_id }} .ticker__divider {
+    display: inline-flex;
+    align-items: center;
+    color: var(--ticker-divider);
+    padding: 0 calc(var(--ticker-gap) * 0.25);
+    font-size: calc(var(--ticker-font-size) * {{ section.settings.divider_size_ratio }});
+  }
+
+  @keyframes ticker-scroll {
+    from { transform: translateX(0); }
+    to   { transform: translateX(-50%); }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    #{{ ticker_id }} .ticker__track {
+      animation: none;
+      flex-wrap: wrap;
+      justify-content: center;
+      width: 100%;
+    }
+  }
+</style>
+
+<div id="{{ ticker_id }}" class="scrolling-features-bar" role="marquee" aria-label="Product features">
+  <div class="ticker__track">
+    {%- comment %} Render twice for seamless infinite loop {%- endcomment %}
+    {%- for _loop in (1..2) -%}
+      {%- for block in section.blocks -%}
+        {%- if block.type == 'feature' and block.settings.label != blank -%}
+
+          <span class="ticker__item" {{ block.shopify_attributes }}>
+
+            {%- if block.settings.icon != blank and section.settings.icon_position == 'before' -%}
+              <span class="ticker__icon" aria-hidden="true">
+                {%- render 'icon-svg', icon: block.settings.icon -%}
+                {{ block.settings.icon_svg }}
+              </span>
+            {%- elsif section.settings.show_default_icon and section.settings.icon_position == 'before' -%}
+              <span class="ticker__icon" aria-hidden="true">
+                {%- assign default_icons = 'shield,clock,refresh,globe,lock,headphones,star' | split: ',' -%}
+                {%- assign icon_index = forloop.index0 | modulo: 7 -%}
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="100%" height="100%">
+                  {%- case default_icons[icon_index] -%}
+                    {%- when 'shield' -%}<path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+                    {%- when 'clock' -%}<circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>
+                    {%- when 'refresh' -%}<polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/>
+                    {%- when 'globe' -%}<circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/>
+                    {%- when 'lock' -%}<rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+                    {%- when 'headphones' -%}<path d="M3 18v-6a9 9 0 0 1 18 0v6"/><path d="M21 19a2 2 0 0 1-2 2h-1a2 2 0 0 1-2-2v-3a2 2 0 0 1 2-2h3zM3 19a2 2 0 0 0 2 2h1a2 2 0 0 0 2-2v-3a2 2 0 0 0-2-2H3z"/>
+                    {%- when 'star' -%}<polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
+                  {%- endcase -%}
+                </svg>
+              </span>
+            {%- endif -%}
+
+            <span class="ticker__label">{{ block.settings.label }}</span>
+
+            {%- if block.settings.icon != blank and section.settings.icon_position == 'after' -%}
+              <span class="ticker__icon" aria-hidden="true">{{ block.settings.icon_svg }}</span>
+            {%- elsif section.settings.show_default_icon and section.settings.icon_position == 'after' -%}
+              <span class="ticker__icon" aria-hidden="true">
+                {%- assign default_icons = 'shield,clock,refresh,globe,lock,headphones,star' | split: ',' -%}
+                {%- assign icon_index = forloop.index0 | modulo: 7 -%}
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="100%" height="100%">
+                  {%- case default_icons[icon_index] -%}
+                    {%- when 'shield' -%}<path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+                    {%- when 'clock' -%}<circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>
+                    {%- when 'refresh' -%}<polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/>
+                    {%- when 'globe' -%}<circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/>
+                    {%- when 'lock' -%}<rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+                    {%- when 'headphones' -%}<path d="M3 18v-6a9 9 0 0 1 18 0v6"/><path d="M21 19a2 2 0 0 1-2 2h-1a2 2 0 0 1-2-2v-3a2 2 0 0 1 2-2h3zM3 19a2 2 0 0 0 2 2h1a2 2 0 0 0 2-2v-3a2 2 0 0 0-2-2H3z"/>
+                    {%- when 'star' -%}<polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
+                  {%- endcase -%}
+                </svg>
+              </span>
+            {%- endif -%}
+
+          </span>
+
+          {%- unless forloop.last and _loop == 2 -%}
+            <span class="ticker__divider" aria-hidden="true">{{ section.settings.divider_symbol }}</span>
+          {%- endunless -%}
+
+        {%- endif -%}
+      {%- endfor -%}
+    {%- endfor -%}
+  </div>
+</div>
+
+{% schema %}
+{
+  "name": "Scrolling Features Bar",
+  "tag": "section",
+  "class": "scrolling-features-section",
+  "settings": [
+    {
+      "type": "header",
+      "content": "🎨 Colors"
+    },
+    {
+      "type": "color",
+      "id": "background_color",
+      "label": "Background color",
+      "default": "#0A0A0A"
+    },
+    {
+      "type": "color",
+      "id": "text_color",
+      "label": "Text color",
+      "default": "#F5F0E8"
+    },
+    {
+      "type": "color",
+      "id": "accent_color",
+      "label": "Icon / accent color",
+      "default": "#C9A96E"
+    },
+    {
+      "type": "color",
+      "id": "divider_color",
+      "label": "Divider color",
+      "default": "#4A4A4A"
+    },
+    {
+      "type": "header",
+      "content": "✏️ Typography"
+    },
+    {
+      "type": "range",
+      "id": "font_size",
+      "label": "Font size (px)",
+      "min": 10,
+      "max": 28,
+      "step": 1,
+      "default": 13
+    },
+    {
+      "type": "select",
+      "id": "font_weight",
+      "label": "Font weight",
+      "options": [
+        { "value": "300", "label": "Light (300)" },
+        { "value": "400", "label": "Regular (400)" },
+        { "value": "500", "label": "Medium (500)" },
+        { "value": "600", "label": "Semi-bold (600)" },
+        { "value": "700", "label": "Bold (700)" },
+        { "value": "800", "label": "Extra-bold (800)" }
+      ],
+      "default": "500"
+    },
+    {
+      "type": "select",
+      "id": "text_transform",
+      "label": "Text case",
+      "options": [
+        { "value": "none", "label": "None" },
+        { "value": "uppercase", "label": "UPPERCASE" },
+        { "value": "lowercase", "label": "lowercase" },
+        { "value": "capitalize", "label": "Capitalize" }
+      ],
+      "default": "uppercase"
+    },
+    {
+      "type": "range",
+      "id": "letter_spacing",
+      "label": "Letter spacing (em)",
+      "min": 0,
+      "max": 30,
+      "step": 1,
+      "unit": "1em",
+      "default": 10,
+      "info": "Value × 0.01em — e.g. 10 = 0.10em"
+    },
+    {
+      "type": "select",
+      "id": "font_family",
+      "label": "Font family",
+      "options": [
+        { "value": "inherit", "label": "Theme default" },
+        { "value": "serif", "label": "Serif" },
+        { "value": "monospace", "label": "Monospace" },
+        { "value": "'Georgia', serif", "label": "Georgia" },
+        { "value": "'Courier New', monospace", "label": "Courier New" }
+      ],
+      "default": "inherit"
+    },
+    {
+      "type": "header",
+      "content": "🔄 Scroll Behavior"
+    },
+    {
+      "type": "range",
+      "id": "scroll_speed",
+      "label": "Scroll speed (seconds per loop)",
+      "min": 10,
+      "max": 120,
+      "step": 5,
+      "default": 35,
+      "info": "Lower = faster"
+    },
+    {
+      "type": "select",
+      "id": "scroll_direction",
+      "label": "Scroll direction",
+      "options": [
+        { "value": "left", "label": "← Left (default)" },
+        { "value": "right", "label": "→ Right" }
+      ],
+      "default": "left"
+    },
+    {
+      "type": "checkbox",
+      "id": "pause_on_hover",
+      "label": "Pause on hover",
+      "default": true
+    },
+    {
+      "type": "header",
+      "content": "📐 Layout & Spacing"
+    },
+    {
+      "type": "range",
+      "id": "padding_vertical",
+      "label": "Vertical padding (px)",
+      "min": 4,
+      "max": 40,
+      "step": 2,
+      "default": 14
+    },
+    {
+      "type": "range",
+      "id": "item_gap",
+      "label": "Gap between items (px)",
+      "min": 16,
+      "max": 120,
+      "step": 4,
+      "default": 48
+    },
+    {
+      "type": "range",
+      "id": "section_margin_top",
+      "label": "Margin top (px)",
+      "min": 0,
+      "max": 80,
+      "step": 4,
+      "default": 0
+    },
+    {
+      "type": "range",
+      "id": "section_margin_bottom",
+      "label": "Margin bottom (px)",
+      "min": 0,
+      "max": 80,
+      "step": 4,
+      "default": 0
+    },
+    {
+      "type": "range",
+      "id": "section_border_radius",
+      "label": "Section corner radius (px)",
+      "min": 0,
+      "max": 32,
+      "step": 2,
+      "default": 0
+    },
+    {
+      "type": "header",
+      "content": "─ Borders"
+    },
+    {
+      "type": "range",
+      "id": "border_top_width",
+      "label": "Border top width (px)",
+      "min": 0,
+      "max": 6,
+      "step": 1,
+      "default": 1
+    },
+    {
+      "type": "range",
+      "id": "border_bottom_width",
+      "label": "Border bottom width (px)",
+      "min": 0,
+      "max": 6,
+      "step": 1,
+      "default": 1
+    },
+    {
+      "type": "color",
+      "id": "border_color",
+      "label": "Border color",
+      "default": "#2A2A2A"
+    },
+    {
+      "type": "header",
+      "content": "✨ Visual Effects"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_gradient_fade",
+      "label": "Show fade edges",
+      "default": true,
+      "info": "Fades content at left and right edges"
+    },
+    {
+      "type": "range",
+      "id": "gradient_fade_width",
+      "label": "Fade width (px)",
+      "min": 20,
+      "max": 200,
+      "step": 10,
+      "default": 80
+    },
+    {
+      "type": "header",
+      "content": "🔷 Divider"
+    },
+    {
+      "type": "select",
+      "id": "divider_symbol",
+      "label": "Divider symbol",
+      "options": [
+        { "value": "✦", "label": "✦ Four-point star" },
+        { "value": "•", "label": "• Bullet" },
+        { "value": "·", "label": "· Middle dot" },
+        { "value": "|", "label": "| Pipe" },
+        { "value": "/", "label": "/ Slash" },
+        { "value": "◆", "label": "◆ Diamond" },
+        { "value": "★", "label": "★ Star" },
+        { "value": "—", "label": "— Em dash" },
+        { "value": "×", "label": "× Cross" },
+        { "value": "❋", "label": "❋ Asterism" }
+      ],
+      "default": "✦"
+    },
+    {
+      "type": "range",
+      "id": "divider_size_ratio",
+      "label": "Divider size ratio",
+      "min": 5,
+      "max": 20,
+      "step": 1,
+      "default": 8,
+      "info": "Value × 0.1 — e.g. 8 = 0.8× text size"
+    },
+    {
+      "type": "header",
+      "content": "🔹 Icons"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_default_icon",
+      "label": "Show auto-assigned icons",
+      "default": true,
+      "info": "Assigns a contextual icon to each feature item"
+    },
+    {
+      "type": "range",
+      "id": "icon_size",
+      "label": "Icon size (px)",
+      "min": 10,
+      "max": 32,
+      "step": 1,
+      "default": 15
+    },
+    {
+      "type": "select",
+      "id": "icon_position",
+      "label": "Icon position",
+      "options": [
+        { "value": "before", "label": "Before text" },
+        { "value": "after", "label": "After text" }
+      ],
+      "default": "before"
+    }
+  ],
+  "blocks": [
+    {
+      "type": "feature",
+      "name": "Feature Item",
+      "settings": [
+        {
+          "type": "text",
+          "id": "label",
+          "label": "Feature label",
+          "default": "Feature Label"
+        }
+      ]
+    }
+  ],
+  "presets": [
+    {
+      "name": "Scrolling Features Bar",
+      "blocks": [
+        { "type": "feature", "settings": { "label": "Lifetime Protection" } },
+        { "type": "feature", "settings": { "label": "7-Day Real-World Travel Trial™" } },
+        { "type": "feature", "settings": { "label": "60-Day Risk-Free Returns" } },
+        { "type": "feature", "settings": { "label": "Global Express Shipping" } },
+        { "type": "feature", "settings": { "label": "Zero Data Selling" } },
+        { "type": "feature", "settings": { "label": "24/7 Human Support" } },
+        { "type": "feature", "settings": { "label": "Travel Without Compromise" } }
+      ]
+    }
+  ]
+}
+{% endschema %}

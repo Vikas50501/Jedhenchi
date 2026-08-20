@@ -1,0 +1,112 @@
+{% comment %}
+  Renders product variant options
+
+  Accepts:
+  - product: {Object} product object.
+  - option: {Object} current product_option object.
+  - block: {Object} block object.
+
+
+  Usage:
+  {% render 'product-variant-options',
+    product: product,
+    option: option,
+    block: block,
+    picker_type: block.settings.picker_type
+  %}
+{% endcomment %}
+
+{%- liquid
+  assign variants_available_arr = product.variants | map: 'available'
+  assign variants_option1_arr = product.variants | map: 'option1'
+  assign variants_option2_arr = product.variants | map: 'option2'
+  assign variants_option3_arr = product.variants | map: 'option3'
+
+  assign product_form_id = 'product-form-' | append: section.id
+-%}
+
+{%- for value in option.values -%}
+  {%- liquid
+    assign option_name = option.name | downcase
+    assign option_disabled = true
+
+    for option1_name in variants_option1_arr
+      case option.position
+        when 1
+          if variants_option1_arr[forloop.index0] == value and variants_available_arr[forloop.index0]
+            assign option_disabled = false
+          endif
+        when 2
+          if option1_name == product.selected_or_first_available_variant.option1 and variants_option2_arr[forloop.index0] == value and variants_available_arr[forloop.index0]
+            assign option_disabled = false
+          endif
+        when 3
+          if option1_name == product.selected_or_first_available_variant.option1 and variants_option2_arr[forloop.index0] == product.selected_or_first_available_variant.option2 and variants_option3_arr[forloop.index0] == value and variants_available_arr[forloop.index0]
+            assign option_disabled = false
+          endif
+      endcase
+    endfor
+  -%}
+
+  {%- if picker_type == 'button' -%}
+    <input
+      type="radio"
+      id="{{ section.id }}-{{ option.position }}-{{ forloop.index0 }}"
+      name="{{ option.name }}"
+      value="{{ value | escape }}"
+      form="{{ product_form_id }}"
+      {% if option.selected_value == value %}
+        checked
+      {% endif %}
+      {% if option_disabled %}
+        class="disabled"
+      {% endif %}
+    >
+    {% if choose_option == option_name %}
+      {%- assign color_item_name = value | escape | downcase -%}
+{%- assign colo_item_name_join = color_item_name | split: ' ' -%}
+
+{%- comment -%} Color name to hex map {%- endcomment -%}
+{%- assign color_map_keys   = 'jet black|black|grey|gray|white|silver|navy|blue|red|green|brown|beige|tan|khaki|orange|yellow|pink|purple|maroon|teal|charcoal|cream|off white|ivory|gold|rose gold|midnight blue|cobalt|olive|coral' | split: '|' -%}
+{%- assign color_map_values = '#1a1a1a|#000000|#808080|#808080|#ffffff|#c0c0c0|#001f5b|#0000ff|#ff0000|#008000|#8b4513|#f5f0dc|#d2b48c|#c3b091|#ff8c00|#ffd700|#ff69b4|#800080|#800000|#008080|#36454f|#fffdd0|#faf0e6|#fffff0|#ffd700|#b76e79|#003366|#0047ab|#808000|#ff6b6b' | split: '|' -%}
+
+{%- assign swatch_bg_color = color_item_name -%}
+{%- for key in color_map_keys -%}
+  {%- if key == color_item_name -%}
+    {%- assign swatch_bg_color = color_map_values[forloop.index0] -%}
+    {%- break -%}
+  {%- endif -%}
+{%- endfor -%}
+
+    {%- assign swatch_color_value = colo_item_name_join | join: ' ' -%}
+<label
+  class="variant--swatch-custom {% if swatch_type == "image" %}variant--swatch-image{% else %}variant--swatch-color{% endif %} {% if swatch_button_style == "round" %}swatch-button-circle{% endif %}"
+  for="{{ section.id }}-{{ option.position }}-{{ forloop.index0 }}"
+  data-value="{{ value | escape }}"
+  data-color="{{- colo_item_name_join | join: '-' -}}"
+style="background-color: {{ colo_item_name_join | join: ' ' }};"
+>
+        <span class="swatch--variant-tooltip">{{ value }}</span>
+        <span class="visually-hidden">{{ value }}</span>
+      </label>
+    {% else %}
+      <label for="{{ section.id }}-{{ option.position }}-{{ forloop.index0 }}">
+        {{ value -}}
+        <span class="visually-hidden"> {{ value -}}</span>
+      </label>
+    {% endif %}
+  {%- elsif picker_type == 'dropdown' -%}
+    <option
+      value="{{ value | escape }}"
+      {% if option.selected_value == value %}
+        selected="selected"
+      {% endif %}
+    >
+      {% if option_disabled -%}
+        {{- 'products.product.value_unavailable' | t: option_value: value -}}
+      {%- else -%}
+        {{- value -}}
+      {%- endif %}
+    </option>
+  {%- endif -%}
+{%- endfor -%}
