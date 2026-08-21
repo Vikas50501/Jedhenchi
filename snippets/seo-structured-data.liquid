@@ -60,7 +60,21 @@
     endfor
     assign varies_by = varies_raw | split: '|'
 
-    assign breadcrumb_collection = collection | default: product.collections.first
+    comment
+      Pick the breadcrumb collection. Generic catch-all collections make a
+      useless breadcrumb ("Home > All > Product"), so skip them and fall back
+      to a real one when the product has any.
+    endcomment
+    assign breadcrumb_collection = collection
+    if breadcrumb_collection == blank or breadcrumb_collection.handle == 'all' or breadcrumb_collection.handle == 'frontpage'
+      assign breadcrumb_collection = nil
+      for c in product.collections
+        if c.handle != 'all' and c.handle != 'frontpage' and c.handle != 'home'
+          assign breadcrumb_collection = c
+          break
+        endif
+      endfor
+    endif
   -%}
 
   <script type="application/ld+json">
@@ -207,7 +221,7 @@
             {
               "@type": "ListItem",
               "position": 1,
-              "name": {{ 'general.breadcrumbs.home' | t | default: 'Home' | json }},
+              "name": "Home",
               "item": {{ base_url | json }}
             },
             {%- if breadcrumb_collection != blank and breadcrumb_collection.handle != blank %}
@@ -277,7 +291,7 @@
             {
               "@type": "ListItem",
               "position": 1,
-              "name": {{ 'general.breadcrumbs.home' | t | default: 'Home' | json }},
+              "name": "Home",
               "item": {{ base_url | json }}
             },
             {
