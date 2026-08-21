@@ -34,11 +34,15 @@
   # If the shipping policy page changes, update these. The validator's policy
   # drift check will flag the mismatch.
   assign shipping_enabled = true
-  assign ship_country     = 'IN'      # domestic only; policy covers India
-  assign ship_rate        = '0'       # free on prepaid domestic orders
-  assign handling_min     = 0         # included in the 2-7 day total below
+  # domestic only; policy covers India
+  assign ship_country     = 'IN'
+  # free on prepaid domestic orders
+  assign ship_rate        = '0'
+  # included in the 2-7 day total below
+  assign handling_min     = 0
   assign handling_max     = 0
-  assign transit_min      = 2         # "delivered within 2-7 Days"
+  # "delivered within 2-7 Days"
+  assign transit_min      = 2
   assign transit_max      = 7
 
   # --- Returns --------------------------------------------------------------
@@ -51,8 +55,10 @@
   # problem. Resolve the policy first, then set real values here.
   assign returns_enabled  = false
   assign return_days      = 30
-  assign return_method    = 'ReturnByMail'   # or ReturnInStore
-  assign return_fees      = 'FreeReturn'     # or ReturnShippingFees
+  # or ReturnInStore
+  assign return_method    = 'ReturnByMail'
+  # or ReturnShippingFees
+  assign return_fees      = 'FreeReturn'
 
   # --- Price format ---------------------------------------------------------
   # 'money'  = uses money_without_currency (correct for most stores)
