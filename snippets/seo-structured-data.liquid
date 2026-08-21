@@ -1,31 +1,77 @@
 {%- comment -%}
+  ===========================================================================
+  seo-structured-data.liquid                                    v1.0
   ---------------------------------------------------------------------------
-  seo-structured-data.liquid
-  ---------------------------------------------------------------------------
-  Emits exactly ONE application/ld+json block per page, as a single @graph.
+  Portable Shopify structured-data snippet. Emits exactly ONE
+  application/ld+json block per page as a single @graph.
 
-  Rendered once from:
-    - sections/main-product.liquid   (product pages)
-    - sections/main-collection-*.liquid or theme.liquid (collection pages)
+  ***  THE ONLY FILE YOU EDIT PER STORE IS THE CONFIG BLOCK BELOW.  ***
 
-  Nodes emitted:
-    product page    -> ProductGroup (multi-variant) or Product (single), plus
-                       BreadcrumbList
-    collection page -> ItemList, plus BreadcrumbList
+  Rendered from:
+    product page     {% render 'seo-structured-data', product: product, collection: collection %}
+    collection page  {% render 'seo-structured-data', collection: collection %}
 
-  The Organization node lives in sections/header.liquid and is referenced here
-  by @id. Do not duplicate it.
+  Requires: snippets/seo-offer.liquid, snippets/seo-gtin.liquid
+  Requires: an Organization node with @id "<shop.url>#organization"
+            (see SETUP-CHECKLIST.md step 4)
 
-  Rules enforced:
-    - absolute https URLs only
-    - empty fields omitted entirely, never null / "" / "N/A"
-    - GTINs validated (length + GS1 check digit) via snippets/seo-gtin.liquid
-    - aggregateRating emitted only when real review data exists
-    - canonical /products/<handle> URLs, never /collections/*/products/*
-  ---------------------------------------------------------------------------
+  Emits nothing visible. No CSS, no HTML, no layout impact.
+  ===========================================================================
 {%- endcomment -%}
 
 {%- liquid
+  # =========================================================================
+  # CONFIG  --  edit this block only
+  # =========================================================================
+
+  # --- Shipping -------------------------------------------------------------
+  # Values taken verbatim from /pages/shipping-policy (read 2026-08-21):
+  #   "We offer free shipping on all prepaid domestic orders."   -> rate 0
+  #   "Orders are generally delivered within 2-7 Days"           -> 2-7 days
+  # That 2-7 window is the TOTAL time the page promises, so handling is 0 and
+  # the whole window sits in transitTime. Do not split it, or the total
+  # advertised on the page and the total in the schema stop matching.
+  # If the shipping policy page changes, update these. The validator's policy
+  # drift check will flag the mismatch.
+  assign shipping_enabled = true
+  assign ship_country     = 'IN'      # domestic only; policy covers India
+  assign ship_rate        = '0'       # free on prepaid domestic orders
+  assign handling_min     = 0         # included in the 2-7 day total below
+  assign handling_max     = 0
+  assign transit_min      = 2         # "delivered within 2-7 Days"
+  assign transit_max      = 7
+
+  # --- Returns --------------------------------------------------------------
+  # DELIBERATELY OFF. The store's own pages contradict each other:
+  #   /pages/refund-policy : "EXCHANGE & RETURN are not available for
+  #                           Domestic/International orders"
+  #   product page badges  : "60-Day Risk-Free Returns", "Money Return"
+  # Encoding either version would publish a claim the other page disproves,
+  # which is both a Google structured-data violation and a consumer-law
+  # problem. Resolve the policy first, then set real values here.
+  assign returns_enabled  = false
+  assign return_days      = 30
+  assign return_method    = 'ReturnByMail'   # or ReturnInStore
+  assign return_fees      = 'FreeReturn'     # or ReturnShippingFees
+
+  # --- Price format ---------------------------------------------------------
+  # 'money'  = uses money_without_currency (correct for most stores)
+  # 'divide' = use ONLY if the store formats money as 1.999,00 (comma decimal)
+  assign price_mode = 'money'
+
+  # --- Reviews --------------------------------------------------------------
+  # Judge.me, Loox, Yotpo, Stamped and Shopify Product Reviews all write to
+  # the standard reviews.rating / reviews.rating_count metafields, so this
+  # works unchanged on most stores. Set to false to suppress ratings entirely.
+  assign reviews_enabled = true
+
+  # --- Images ---------------------------------------------------------------
+  assign max_images = 10
+
+  # =========================================================================
+  # END CONFIG  --  nothing below needs editing
+  # =========================================================================
+
   assign base_url = request.origin
   assign org_id = shop.url | append: '#organization'
 -%}
@@ -40,15 +86,19 @@
 
     assign brand_name = product.vendor | default: shop.name
 
-    assign rating = product.metafields.reviews.rating.value
-    assign rating_count = product.metafields.reviews.rating_count.value | default: product.metafields.reviews.rating_count | plus: 0
+    assign rating = nil
+    assign rating_count = 0
+    if reviews_enabled
+      assign rating = product.metafields.reviews.rating.value
+      assign rating_count = product.metafields.reviews.rating_count.value | default: product.metafields.reviews.rating_count | plus: 0
+    endif
 
     assign variant_count = product.variants.size
 
     assign varies_raw = ''
     for option_name in product.options
       assign option_key = option_name | downcase
-      if option_key contains 'color' or option_key contains 'colour'
+      if option_key contains 'color' or option_key contains 'colour' or option_key contains 'shade'
         assign varies_raw = varies_raw | append: 'https://schema.org/color|'
       elsif option_key contains 'size'
         assign varies_raw = varies_raw | append: 'https://schema.org/size|'
@@ -61,9 +111,8 @@
     assign varies_by = varies_raw | split: '|'
 
     comment
-      Pick the breadcrumb collection. Generic catch-all collections make a
-      useless breadcrumb ("Home > All > Product"), so skip them and fall back
-      to a real one when the product has any.
+      Generic catch-all collections make a useless breadcrumb
+      ("Home > All > Product"), so skip them and fall back to a real one.
     endcomment
     assign breadcrumb_collection = collection
     if breadcrumb_collection == blank or breadcrumb_collection.handle == 'all' or breadcrumb_collection.handle == 'frontpage'
@@ -93,7 +142,7 @@
             {%- endif %}
             {%- if product.images.size > 0 %}
               "image": [
-                {%- for image in product.images limit: 10 -%}
+                {%- for image in product.images limit: max_images -%}
                   {{ image | image_url: width: 2048 | prepend: 'https:' | json }}
                   {%- unless forloop.last %},{% endunless -%}
                 {%- endfor -%}
@@ -149,7 +198,7 @@
                       assign option_value = variant.options[option_index]
                     -%}
                     {%- if option_value != blank -%}
-                      {%- if option_key contains 'color' or option_key contains 'colour' -%}
+                      {%- if option_key contains 'color' or option_key contains 'colour' or option_key contains 'shade' -%}
                         "color": {{ option_value | json }},
                       {%- elsif option_key contains 'size' -%}
                         "size": {{ option_value | json }},
@@ -167,7 +216,23 @@
                       "unitCode": "GRM"
                     },
                   {%- endif %}
-                  "offers": {% render 'seo-offer', product: product, variant: variant, canonical_url: canonical_url, org_id: org_id %}
+                  "offers": {% render 'seo-offer',
+                                product: product,
+                                variant: variant,
+                                canonical_url: canonical_url,
+                                org_id: org_id,
+                                price_mode: price_mode,
+                                shipping_enabled: shipping_enabled,
+                                ship_country: ship_country,
+                                ship_rate: ship_rate,
+                                handling_min: handling_min,
+                                handling_max: handling_max,
+                                transit_min: transit_min,
+                                transit_max: transit_max,
+                                returns_enabled: returns_enabled,
+                                return_days: return_days,
+                                return_method: return_method,
+                                return_fees: return_fees %}
                 }{%- unless forloop.last %},{% endunless -%}
               {%- endfor -%}
             ]
@@ -184,7 +249,7 @@
             {%- endif %}
             {%- if product.images.size > 0 %}
               "image": [
-                {%- for image in product.images limit: 10 -%}
+                {%- for image in product.images limit: max_images -%}
                   {{ image | image_url: width: 2048 | prepend: 'https:' | json }}
                   {%- unless forloop.last %},{% endunless -%}
                 {%- endfor -%}
@@ -211,7 +276,23 @@
                 "reviewCount": {{ rating_count | json }}
               },
             {%- endif %}
-            "offers": {% render 'seo-offer', product: product, variant: variant, canonical_url: canonical_url, org_id: org_id %}
+            "offers": {% render 'seo-offer',
+                          product: product,
+                          variant: variant,
+                          canonical_url: canonical_url,
+                          org_id: org_id,
+                          price_mode: price_mode,
+                          shipping_enabled: shipping_enabled,
+                          ship_country: ship_country,
+                          ship_rate: ship_rate,
+                          handling_min: handling_min,
+                          handling_max: handling_max,
+                          transit_min: transit_min,
+                          transit_max: transit_max,
+                          returns_enabled: returns_enabled,
+                          return_days: return_days,
+                          return_method: return_method,
+                          return_fees: return_fees %}
           },
         {%- endif -%}
         {
@@ -257,7 +338,7 @@
     assign collection_url = base_url | append: '/collections/' | append: collection.handle
     comment
       Outside a paginate tag Liquid exposes at most 50 products, so
-      numberOfItems must reflect what is actually listed, not products_count.
+      numberOfItems must reflect what is actually listed.
     endcomment
     assign listed_products = collection.products
   -%}

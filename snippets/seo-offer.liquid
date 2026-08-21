@@ -1,17 +1,15 @@
 {%- comment -%}
-  Emits a single schema.org Offer object (no trailing comma).
-
-  Usage:
-    {% render 'seo-offer',
-        product: product,
-        variant: variant,
-        canonical_url: canonical_url,
-        org_id: org_id %}
+  ---------------------------------------------------------------------------
+  seo-offer.liquid  --  portable, no per-store editing needed
+  ---------------------------------------------------------------------------
+  Emits one schema.org Offer object (no trailing comma).
+  All configuration is passed in from seo-structured-data.liquid.
 
   Availability mapping:
-    available + tracked + qty <= 0  -> BackOrder   (continue-selling / pre-order)
-    available                        -> InStock
-    otherwise                        -> OutOfStock
+    available + inventory tracked + qty <= 0  -> BackOrder  (continue selling)
+    available                                  -> InStock
+    otherwise                                  -> OutOfStock
+  ---------------------------------------------------------------------------
 {%- endcomment -%}
 {%- liquid
   assign offer_url = canonical_url | append: '?variant=' | append: variant.id
@@ -25,7 +23,11 @@
     endif
   endif
 
-  assign offer_price = variant.price | money_without_currency | replace: ',', '' | strip
+  if price_mode == 'divide'
+    assign offer_price = variant.price | divided_by: 100.0
+  else
+    assign offer_price = variant.price | money_without_currency | replace: ',', '' | strip
+  endif
 
   assign condition = product.metafields.seo.item_condition | default: 'NewCondition'
   assign valid_until = product.metafields.seo.price_valid_until.value | default: product.metafields.seo.price_valid_until
@@ -44,5 +46,44 @@
     "sku": {{ variant.sku | json }},
   {%- endif %}
   {% render 'seo-gtin', barcode: variant.barcode %}
+  {%- if shipping_enabled %}
+    "shippingDetails": {
+      "@type": "OfferShippingDetails",
+      "shippingRate": {
+        "@type": "MonetaryAmount",
+        "value": {{ ship_rate | json }},
+        "currency": {{ cart.currency.iso_code | json }}
+      },
+      "shippingDestination": {
+        "@type": "DefinedRegion",
+        "addressCountry": {{ ship_country | json }}
+      },
+      "deliveryTime": {
+        "@type": "ShippingDeliveryTime",
+        "handlingTime": {
+          "@type": "QuantitativeValue",
+          "minValue": {{ handling_min | json }},
+          "maxValue": {{ handling_max | json }},
+          "unitCode": "DAY"
+        },
+        "transitTime": {
+          "@type": "QuantitativeValue",
+          "minValue": {{ transit_min | json }},
+          "maxValue": {{ transit_max | json }},
+          "unitCode": "DAY"
+        }
+      }
+    },
+  {%- endif %}
+  {%- if returns_enabled %}
+    "hasMerchantReturnPolicy": {
+      "@type": "MerchantReturnPolicy",
+      "applicableCountry": {{ ship_country | json }},
+      "returnPolicyCategory": "https://schema.org/MerchantReturnFiniteReturnWindow",
+      "merchantReturnDays": {{ return_days | json }},
+      "returnMethod": "https://schema.org/{{ return_method }}",
+      "returnFees": "https://schema.org/{{ return_fees }}"
+    },
+  {%- endif %}
   "seller": { "@id": {{ org_id | json }} }
 }

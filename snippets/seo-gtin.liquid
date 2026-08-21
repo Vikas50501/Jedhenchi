@@ -1,10 +1,16 @@
 {%- comment -%}
+  ---------------------------------------------------------------------------
+  seo-gtin.liquid  --  portable, no configuration needed
+  ---------------------------------------------------------------------------
   Validates a barcode as a GTIN and emits the correct gtin8/12/13/14 property.
-  Emits nothing at all when the barcode is missing, non-numeric, the wrong
-  length, or fails the GS1 mod-10 check digit. Never emits an invalid GTIN.
+  Emits NOTHING when the barcode is missing, non-numeric, the wrong length, or
+  fails the GS1 mod-10 check digit.
 
-  Usage: {% render 'seo-gtin', barcode: variant.barcode %}
-  Output (trailing comma included): "gtin13": "0012345678905",
+  An invalid GTIN is worse than no GTIN: Google rejects the whole product.
+
+  Usage:  {% render 'seo-gtin', barcode: variant.barcode %}
+  Output: "gtin13": "0012345678905",     (trailing comma included)
+  ---------------------------------------------------------------------------
 {%- endcomment -%}
 {%- liquid
   assign bc = barcode | default: '' | strip
