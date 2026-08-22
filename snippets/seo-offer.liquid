@@ -76,13 +76,23 @@
     },
   {%- endif %}
   {%- if returns_enabled %}
+    {%- comment -%}
+      returnMethod and returnFees are omitted when left blank in the CONFIG.
+      Guessing who pays return shipping is exactly the kind of invented detail
+      that turns a helpful annotation into a false promise, so a store whose
+      policy does not state it emits neither key.
+    {%- endcomment -%}
     "hasMerchantReturnPolicy": {
       "@type": "MerchantReturnPolicy",
       "applicableCountry": {{ ship_country | json }},
       "returnPolicyCategory": "https://schema.org/MerchantReturnFiniteReturnWindow",
-      "merchantReturnDays": {{ return_days | json }},
-      "returnMethod": "https://schema.org/{{ return_method }}",
-      "returnFees": "https://schema.org/{{ return_fees }}"
+      "merchantReturnDays": {{ return_days | json }}
+      {%- if return_method != blank -%}
+        ,"returnMethod": "https://schema.org/{{ return_method }}"
+      {%- endif -%}
+      {%- if return_fees != blank -%}
+        ,"returnFees": "https://schema.org/{{ return_fees }}"
+      {%- endif %}
     },
   {%- endif %}
   "seller": { "@id": {{ org_id | json }} }

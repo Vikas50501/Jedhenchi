@@ -46,19 +46,29 @@
   assign transit_max      = 7
 
   # --- Returns --------------------------------------------------------------
-  # DELIBERATELY OFF. The store's own pages contradict each other:
-  #   /pages/refund-policy : "EXCHANGE & RETURN are not available for
-  #                           Domestic/International orders"
-  #   product page badges  : "60-Day Risk-Free Returns", "Money Return"
-  # Encoding either version would publish a claim the other page disproves,
-  # which is both a Google structured-data violation and a consumer-law
-  # problem. Resolve the policy first, then set real values here.
-  assign returns_enabled  = false
-  assign return_days      = 30
+  # Values from /pages/shipping-policy > "REFUND & RETURN POLICY" (read
+  # 2026-08-21):
+  #   "60 Day Risk Free Returns ... within 60 days of delivery for a full
+  #    refund"                                              -> 60 days
+  #   "Connect with our care team, we will share the address
+  #    for return"                                          -> ReturnByMail
+  #
+  # returnFees is left BLANK on purpose, so the key is omitted entirely. The
+  # policy says "No restocking fees" and "Original shipping refunded", but
+  # neither states who pays to send the item back — and the shipping page says
+  # "you will have to ship the product back to us" for some couriers. Claiming
+  # FreeReturn would be a promise the store has not made.
+  #
+  # STILL UNRESOLVED: /pages/refund-policy contradicts this, saying
+  # "Replacement will be given on Damage Products during Transit Only and
+  # there will be no refund". That page is stale and must be updated to match,
+  # or the 60-day claim here is contradicted by the store's own refund policy.
+  assign returns_enabled  = true
+  assign return_days      = 60
   # or ReturnInStore
   assign return_method    = 'ReturnByMail'
-  # or ReturnShippingFees
-  assign return_fees      = 'FreeReturn'
+  # blank = omit the key; do not guess who pays return shipping
+  assign return_fees      = ''
 
   # --- Price format ---------------------------------------------------------
   # 'money'  = uses money_without_currency (correct for most stores)
